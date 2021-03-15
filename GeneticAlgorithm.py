@@ -1,16 +1,14 @@
 import sys
 import string
 import random
-from math import sqrt
 import time
 import numpy as np
 
 
 GA_POPSIZE = 2048		    # ga population size
-GA_MAXITER = 16384		    # maximum iterations
+GA_MAXITER = 10000		    # maximum iterations
 GA_ELITRATE = 0.1		    # elitism rate
 GA_MUTATIONRATE = 0.25      # mutation rate
-GA_MUTATION = sys.maxsize * GA_MUTATIONRATE
 HIT_BONUS = 1
 EXACT_BONUS = 10
 PSO_C1 = 2
@@ -18,7 +16,7 @@ PSO_C2 = 2
 PSO_W_MIN = 0.4
 PSO_W_MAX = 0.9
 PSO_LEARNING_RATE = 0.1
-GA_TARGET = "If the world would only know what you've been holding back"
+GA_TARGET = "Hello World!"
 
 
 # class of genetic (GA_STRUCT in cpp example)
@@ -30,24 +28,28 @@ class Genetic:
         self.pso = pso
         self.age = 0
         if pso:
-            self.p_best = str_info
-            self.p_best_score = sys.maxsize
-            self.velocity = [random.randrange(-94, 94) for i in range(len(GA_TARGET))]  # self.velocity = [0 for i in range(len(GA_TARGET))]
+            self.p_best_str = str_info
+            self.p_best_fitness = sys.maxsize
+            self.velocity = [0 for i in range(len(GA_TARGET))]
 
     def pso_update(self, best, w, heu):
+        self.velocity = [x * w for x in self.velocity]
         for l in range(len(GA_TARGET)):
-            ran_p = random.random()
-            ran_g = random.random()
-            self.velocity[l] = w*self.velocity[l] + PSO_C1*ran_p*(ord(self.p_best[l])-ord(self.str[l])) + PSO_C2*ran_g*(ord(best.str[l])-ord(self.str[l]))
+            const_p = PSO_C1*random.random()
+            const_g = PSO_C2*random.random()
+            self.velocity[l] += const_p*(ord(self.p_best_str[l])-ord(self.str[l])) + const_g*(ord(best.str[l])-ord(self.str[l]))
 
-        res = [ord(self.str[i]) + int(PSO_LEARNING_RATE*self.velocity[i]) for i in range(len(GA_TARGET))]
+        res = [ord(self.str[i]) + round(PSO_LEARNING_RATE*self.velocity[i]) for i in range(len(GA_TARGET))]
         for i in range(len(res)):
             if res[i] < 0:
                 res[i] = 0
-            # if res[i] > 126:
-            #     res[i] = 126
+            if res[i] > 126:
+                 res[i] = 126
         self.str = ''.join(chr(i) for i in res)
         self.fitness = heu.calc_personal_fitness(self)
+        if self.fitness < self.p_best_fitness:
+            self.p_best_fitness = self.fitness
+            self.p_best_str = self.str
 
 
 # EX4: class for "Bul Pgiya" heuristic
@@ -55,8 +57,8 @@ class HitBonus:
     def calc_fitness(self, gen_arr):
         for g in gen_arr:
             g.fitness = self.calc_personal_fitness(g)
-            if g.pso and g.p_best_score > g.fitness:
-                g.p_best_score = g.fitness
+            if g.pso and g.p_best_fitness > g.fitness:
+                g.p_best_fitness = g.fitness
                 g.p_best = g.str
 
     def calc_personal_fitness(self, gen):
@@ -75,9 +77,9 @@ class LetterDistance:
     def calc_fitness(self, gen_arr):
         for g in gen_arr:
             g.fitness = self.calc_personal_fitness(g)
-            if g.pso and g.p_best_score > g.fitness:
-                g.p_best_score = g.fitness
-                g.p_best = g.str
+            if g.pso and g.p_best_fitness > g.fitness:
+                g.p_best_fitness = g.fitness
+                g.p_best_str = g.str
 
     def calc_personal_fitness(self, gen):
         fitness = 0
@@ -162,11 +164,13 @@ selection_dictionary = {0: RWS(), 1: SUS(), 2: TOURNAMENT(), 3: REGULAR()}
 # creates population
 def init_population(values, pso=False):
     pop = []
-    buffer = [Genetic("") for i in range(GA_POPSIZE)]
     for i in range(GA_POPSIZE):
         ran_str = ''.join(chr(random.choice(values)) for l in range(len(GA_TARGET)))  # ran_str = ''.join(random.choice(string.printable) for l in range(len(GA_TARGET)))   # random string generator
         pop.append(Genetic(ran_str, pso))
+    if pso:
+        return pop
 
+    buffer = [Genetic("") for i in range(GA_POPSIZE)]
     return pop, buffer     # arrays of Genetic type population and buffer initialized
 
 
@@ -185,10 +189,10 @@ def elitism(gen_arr, buffer, esize):
 
 # randomly changes one of the characters
 def mutate(buffer, i):
-    ipos = random.randint(0, len(GA_TARGET)-1)
+    pos = random.randint(0, len(GA_TARGET)-1)
     delta = random.choice(string.printable)
     s = list(buffer[i].str)
-    s[ipos] = delta
+    s[pos] = delta
     buffer[i].str = "".join(s)
 
 
@@ -199,9 +203,9 @@ def mate(gen_arr, buffer, crossover_type, selection_type):
     for i in range(esize, GA_POPSIZE):
         s = selection_type.selection(gen_arr, 2)
         mut = crossover_type.crossover(gen_arr[s[0]].str, gen_arr[s[1]].str)
-        buffer[i] = Genetic(mut)
+        buffer[i].str = mut
 
-        if random.randint(0, sys.maxsize) < GA_MUTATION:
+        if np.random.choice([True, False], p=[GA_MUTATIONRATE, 1-GA_MUTATIONRATE]):
             mutate(buffer, i)
     return gen_arr, buffer
 
@@ -219,10 +223,12 @@ def std_fit(gen_arr):
 
 
 # print function
-def print_best(gen_arr):
+def print_best(gen_arr, timer, ticks):
     print("Best: {} ({}).".format(gen_arr[0].str, gen_arr[0].fitness))
     print("Avg fitness of gen: {}".format(avg_fit(gen_arr)))
-    print("Fitness STD: {}\n".format(std_fit(gen_arr)))
+    print("Fitness STD: {}".format(std_fit(gen_arr)))
+    print("Total time of generation: {}".format(time.time() - timer))
+    print("Total clock ticks (CPU)) of generation: {}\n".format(time.process_time() - ticks))
 
 
 def birthday(gen_arr):
@@ -231,44 +237,55 @@ def birthday(gen_arr):
     return gen_arr
 
 
-def swap(gen_arr, buffer):
-    return buffer, gen_arr
-
-
-def pso(heu, gen_arr):
-    heu.calc_fitness(gen_arr)
-    gen_arr = sort_by_fitness(gen_arr)
-    for i in range(GA_MAXITER):
-        for g in gen_arr:
-            g.pso_update(gen_arr[0], PSO_W_MAX*(1 - i/GA_MAXITER)+PSO_W_MIN*(i/GA_MAXITER), heu)
-        gen_arr = sort_by_fitness(gen_arr)
-        print_best(gen_arr)
-        if gen_arr[0].fitness == 0:
-            break
-    print("Total iter:{}".format(i + 1))
-
-
-def gen_alg(cross_type, heu_type, select_type, init_values, pso_flag=False):
-    gen_arr, buffer = init_population(init_values, pso_flag)
+def gen_alg_PSO(heu_type, init_values):
+    gen_arr = init_population(init_values, pso=True)
     heu = heuristic_dictionary[heu_type]
-    if pso_flag:
-        pso(heu, gen_arr)
-        return
-    cross = crossover_dictionary[cross_type]
-    select = selection_dictionary[select_type]
+    heu.calc_fitness(gen_arr)
+    best_of_generation = min(gen_arr, key=lambda x: x.fitness)
+    global_best = Genetic(best_of_generation.str, pso=True)
+    global_best.fitness = heu.calc_personal_fitness(global_best)
+
     totaltimer = time.time()
     totalticks = time.process_time()
+
     for i in range(GA_MAXITER):
         gentimer = time.time()
         genticktimer = time.process_time()
-        heu.calc_fitness(gen_arr)
-        gen_arr = sort_by_fitness(gen_arr)
-        print_best(gen_arr)
+        w = PSO_W_MAX * (1 - i / GA_MAXITER) + PSO_W_MIN * (i / GA_MAXITER)
+        for g in gen_arr:
+            g.pso_update(global_best, w, heu)
+        best_of_generation = min(gen_arr, key=lambda x: x.fitness)
+        if global_best.fitness > best_of_generation.fitness:
+            global_best.str = best_of_generation.str
+            global_best.fitness = heu.calc_personal_fitness(global_best)
+        print_best(gen_arr, gentimer, genticktimer)
         if gen_arr[0].fitness == 0:
             break
+    print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(time.time() - totaltimer, time.process_time() - totalticks, i+1))
+
+
+def gen_alg(cross_type, heu_type, select_type, init_values):
+    gen_arr, buffer = init_population(init_values)
+    heu = heuristic_dictionary[heu_type]
+    cross = crossover_dictionary[cross_type]
+    select = selection_dictionary[select_type]
+
+    totaltimer = time.time()
+    totalticks = time.process_time()
+
+    for i in range(GA_MAXITER):
+        gentimer = time.time()
+        genticktimer = time.process_time()
+
+        heu.calc_fitness(gen_arr)
+        gen_arr = sort_by_fitness(gen_arr)
+        print_best(gen_arr, gentimer, genticktimer)
+        if gen_arr[0].fitness == 0:
+            break
+
+
         gen_arr = birthday(gen_arr)
-        gen_arr, buffer = mate(gen_arr, buffer, cross, select)
-        gen_arr, buffer = swap(gen_arr, buffer)
-        print("Total time of generation: {}".format(time.time() - gentimer))
-        print("Total clock ticks (CPU)) of generation: {}\n".format(time.process_time() - genticktimer))
+        # mate and swap between buffer and gen_arr
+        buffer, gen_arr = mate(gen_arr, buffer, cross, select)
+
     print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(time.time() - totaltimer, time.process_time() - totalticks, i+1))

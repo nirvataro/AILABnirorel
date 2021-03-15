@@ -1,6 +1,13 @@
 import GeneticAlgorithm as GA
+from typing import overload
 
 
-def nqueens_genetic_solver():
-    heu = input("How many queens\n")
-    GA.gen_alg(, , , init_values, pso_flag=False):
+def foo(x):
+    print(x)
+
+
+def foo(x,*args):
+    print(x+)
+
+
+foo(3,4)
