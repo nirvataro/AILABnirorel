@@ -5,8 +5,8 @@ import time
 import numpy as np
 
 
-GA_POPSIZE = 2048		    # ga population size
-GA_MAXITER = 10000		    # maximum iterations
+GA_POPSIZE = 200	    # ga population size
+GA_MAXITER = 200    	    # maximum iterations
 GA_ELITRATE = 0.1		    # elitism rate
 GA_MUTATIONRATE = 0.25      # mutation rate
 HIT_BONUS = 1
@@ -223,8 +223,8 @@ def std_fit(gen_arr):
 
 
 # print function
-def print_best(gen_arr, timer, ticks):
-    print("Best: {} ({}).".format(gen_arr[0].str, gen_arr[0].fitness))
+def print_best(best, gen_arr, timer, ticks):
+    print("Best: {} ({}).".format(best.str, best.fitness))
     print("Avg fitness of gen: {}".format(avg_fit(gen_arr)))
     print("Fitness STD: {}".format(std_fit(gen_arr)))
     print("Total time of generation: {}".format(time.time() - timer))
@@ -258,8 +258,8 @@ def gen_alg_PSO(heu_type, init_values):
         if global_best.fitness > best_of_generation.fitness:
             global_best.str = best_of_generation.str
             global_best.fitness = heu.calc_personal_fitness(global_best)
-        print_best(gen_arr, gentimer, genticktimer)
-        if gen_arr[0].fitness == 0:
+        print_best(global_best, gen_arr, gentimer, genticktimer)
+        if global_best.fitness == 0:
             break
     print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(time.time() - totaltimer, time.process_time() - totalticks, i+1))
 
@@ -279,7 +279,7 @@ def gen_alg(cross_type, heu_type, select_type, init_values):
 
         heu.calc_fitness(gen_arr)
         gen_arr = sort_by_fitness(gen_arr)
-        print_best(gen_arr, gentimer, genticktimer)
+        print_best(gen_arr[0], gen_arr, gentimer, genticktimer)
         if gen_arr[0].fitness == 0:
             break
 
