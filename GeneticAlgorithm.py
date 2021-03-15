@@ -42,18 +42,20 @@ class Genetic:
         for i in range(len(res)):
             if res[i] < 32:
                 res[i] = 32
-        self.str = ''.join(chr(i) for i in res)  # ____create a lower-bound_____
+            if res[i] > 126:
+                res[i] = 126
+        self.str = ''.join(chr(i) for i in res)
 
 
 # EX4: class for "Bul Pgiya" heuristic
 class HitBonus:
     def calc_fitness(self, gen_arr):
         for g in gen_arr:
-            g.fitness = EXACT_BONUS * len(GA_TARGET)
+            g.fitness += ((EXACT_BONUS+HIT_BONUS) * len(GA_TARGET))  # !!!!
             for i in range(len(GA_TARGET)):
                 if g.str[i] == GA_TARGET[i]:
                     g.fitness -= EXACT_BONUS
-                elif g.str[i] in GA_TARGET:
+                if g.str[i] in GA_TARGET:
                     g.fitness -= HIT_BONUS
             if g.pso and g.p_best_score > g.fitness:
                 g.p_best_score = g.fitness
@@ -104,6 +106,52 @@ class UniCross:
 crossover_dictionary = {'0': UniCross(), '1': OneCross(), '2': TwoCross()}
 
 
+class RWS:
+    def selection(self, gen_arr, k):
+        selections = []
+        max_fit = sum([(gen_arr[GA_POPSIZE-1].fitness - g.fitness) for g in gen_arr])
+        for i in range(k):
+            ran_selection = random.uniform(0, max_fit-1)
+            current = 0
+            for j in range(len(gen_arr)):
+                current += gen_arr[j].fitness
+                if current > ran_selection:
+                    selections.append(j)
+                    break
+        return selections
+
+
+class SUS:
+    def selection(self, gen_arr, k):
+        selections = []
+        max_fit = sum([(gen_arr[GA_POPSIZE-1].fitness - g.fitness) for g in gen_arr])
+        start_range = 0
+        for i in range(k):
+            start_range = random.uniform(start_range, max_fit)
+            current = 0
+            for j in range(len(gen_arr)):
+                current += gen_arr[j].fitness
+                if current > start_range:
+                    selections.append(j)
+                    break
+        return selections
+
+
+class TOURNAMENT:
+    def selection(self, gen_arr, k):
+        pass
+
+
+class REGULAR:
+    def selection(self, gen_arr, k):
+        selections = []
+        for i in range(k):
+            selections.append(random.randint(0, int(GA_POPSIZE/2)))
+        return selections
+
+
+selection_dictionary = {'0': RWS(), '1': SUS(), '2': TOURNAMENT(), '3': REGULAR()}
+
 # creates population
 def init_population(pso=False):
     pop = []
@@ -137,15 +185,14 @@ def mutate(buffer, i):
     buffer[i].str = "".join(s)
 
 
-def mate(gen_arr, buffer, c):
+def mate(gen_arr, buffer, c, selection_type):
     esize = int(GA_POPSIZE * GA_ELITRATE)       # number of elitism moving to next gen
     buffer = elitism(gen_arr, buffer, esize)
 
     for i in range(GA_POPSIZE-esize):
         index = i+esize
-        i1 = random.randint(0, int(GA_POPSIZE/2))
-        i2 = random.randint(0, int(GA_POPSIZE/2))
-        mut = c.crossover(gen_arr[i1].str, gen_arr[i2].str)
+        s = selection_type.selection(gen_arr, 2)
+        mut = c.crossover(gen_arr[s[0]].str, gen_arr[s[1]].str)
         buffer[index] = Genetic(mut)
 
         if random.randint(0, sys.maxsize) < GA_MUTATION:
@@ -184,6 +231,7 @@ def swap(gen_arr, buffer):
 def main():
     cross = crossover_dictionary[input("Choose crossover Type:\n0 - Uniform crossover\n1 - Single point cross over\n2 - Two point cross over\n")]
     heu = heuristic_dictionary[input("Choose heuristic:\n0 - Letter Distance\n1 - Hit Bonus\n")]
+    select = selection_dictionary[input("Choose selection:\n0 - RWS\n1 - SUS\n2 - TOURNAMENT\n3 - REGULAR\n")]
     gen_arr, buffer = init_population()
     totaltimer = time.time()
     totalticks = time.process_time()
@@ -195,7 +243,7 @@ def main():
         print_best(gen_arr)
         if gen_arr[0].fitness == 0:
             break
-        gen_arr, buffer = mate(gen_arr, buffer, cross)
+        gen_arr, buffer = mate(gen_arr, buffer, cross, select)
         gen_arr, buffer = swap(gen_arr, buffer)
         print("Total time of generation: {}".format(time.time() - gentimer))
         print("Total clock ticks (CPU)) of generation: {}\n".format(time.process_time() - genticktimer))

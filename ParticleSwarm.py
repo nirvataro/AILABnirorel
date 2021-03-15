@@ -9,7 +9,7 @@ def main():
         gen_arr = GA.sort_by_fitness(gen_arr)
         for g in gen_arr:
             g.pso_update(gen_arr[0], GA.PSO_W_MAX*(1 - i/GA.GA_MAXITER)+GA.PSO_W_MIN*(i/GA.GA_MAXITER))
-        print("BEST:{} ({})".format(gen_arr[0].p_best, gen_arr[0].p_best_score))
+        print("BEST:{} ({})".format(gen_arr[0].str, gen_arr[0].fitness))
         if gen_arr[0].fitness == 0:
             break
     print("Total iter:{}".format(i + 1))
