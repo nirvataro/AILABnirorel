@@ -3,9 +3,10 @@ import string
 import random
 import time
 import numpy as np
+from math import sqrt
 
 
-GA_POPSIZE = 200	    # ga population size
+GA_POPSIZE = 2048	    # ga population size
 GA_MAXITER = 200    	    # maximum iterations
 GA_ELITRATE = 0.1		    # elitism rate
 GA_MUTATIONRATE = 0.25      # mutation rate
@@ -117,45 +118,55 @@ class UniCross:
 crossover_dictionary = {0: UniCross(), 1: OneCross(), 2: TwoCross()}
 
 
+def scale(gen_arr):
+    scaled_fit = [None for i in range(len(gen_arr))]
+    for i in range(len(gen_arr)):
+        scaled_fit[i] = 1/gen_arr[i].fitness
+    return sum(scaled_fit), scaled_fit
+
+
 class RWS:
-    def selection(self, gen_arr, k):
-        selections = []
-        max_fit = sum([(gen_arr[GA_POPSIZE-1].fitness - g.fitness) for g in gen_arr])
-        for i in range(k):
-            ran_selection = random.uniform(0, max_fit-1)
-            current = 0
-            for j in range(len(gen_arr)):
+    def selection(self, gen_arr, parent=2):
+        sel = [None for i in range(parent)]
+        total_fitness, scaled_fit = scale(gen_arr)
+        for i in range(parent):
+            ran_selection = random.uniform(0, total_fitness)
+            current, j = 0, 0
+            while current < ran_selection:
                 current += gen_arr[j].fitness
-                if current > ran_selection:
-                    selections.append(j)
-                    break
-        return selections
+                j += 1
+            sel[i] = gen_arr[j]
+        return sel
 
 
 class SUS:
-    def selection(self, gen_arr, k):
-        selections = []
-        max_fit = sum([(gen_arr[GA_POPSIZE-1].fitness - g.fitness) for g in gen_arr])
-        start_range = 0
-        for i in range(k):
-            start_range = random.uniform(start_range, max_fit)
-            current = 0
-            for j in range(len(gen_arr)):
+    def selection(self, gen_arr, parent=2):
+        sel = [None for i in range(parent)]
+        total_fitness, scaled_fit = scale(gen_arr)
+        ran = random.uniform(0, total_fitness/GA_POPSIZE)
+        delta = total_fitness/parent
+        for i in range(parent):
+            fitness = ran + i*delta
+            current, j = 0, 0
+            while current < fitness:
                 current += gen_arr[j].fitness
-                if current > start_range:
-                    selections.append(j)
-                    break
-        return selections
+                j += 1
+            sel[i] = gen_arr[j]
+        return sel
 
 
 class TOURNAMENT:
-    def selection(self, gen_arr, k):
-        pass
+    def selection(self, gen_arr, k_tour_size, parent=2):
+        sel = [None for i in range(parent)]
+        for i in range(parent):
+            tournament = random.choices(gen_arr, k=k_tour_size)
+            sel[i] = min(tournament, key=lambda x: x.fitness)
+        return sel
 
 
 class REGULAR:
     def selection(self, gen_arr, k):
-        return [random.randint(0, int(GA_POPSIZE/2)) for i in range(k)]
+        return [gen_arr[random.randint(0, int(GA_POPSIZE/2))] for i in range(k)]
 
 
 selection_dictionary = {0: RWS(), 1: SUS(), 2: TOURNAMENT(), 3: REGULAR()}
@@ -163,14 +174,14 @@ selection_dictionary = {0: RWS(), 1: SUS(), 2: TOURNAMENT(), 3: REGULAR()}
 
 # creates population
 def init_population(values, pso=False):
-    pop = []
+    pop, buffer = [], []
     for i in range(GA_POPSIZE):
         ran_str = ''.join(chr(random.choice(values)) for l in range(len(GA_TARGET)))  # ran_str = ''.join(random.choice(string.printable) for l in range(len(GA_TARGET)))   # random string generator
         pop.append(Genetic(ran_str, pso))
+        buffer.append(Genetic(ran_str, pso))
     if pso:
         return pop
 
-    buffer = [Genetic("") for i in range(GA_POPSIZE)]
     return pop, buffer     # arrays of Genetic type population and buffer initialized
 
 
@@ -187,6 +198,14 @@ def elitism(gen_arr, buffer, esize):
     return buffer
 
 
+def ageing(gen_arr, min_age):
+    can_mate = []
+    for g in gen_arr:
+        if g.age >= min_age:
+            can_mate.append(g)
+    return can_mate
+
+
 # randomly changes one of the characters
 def mutate(buffer, i):
     pos = random.randint(0, len(GA_TARGET)-1)
@@ -196,17 +215,19 @@ def mutate(buffer, i):
     buffer[i].str = "".join(s)
 
 
-def mate(gen_arr, buffer, crossover_type, selection_type):
+def mate(gen_arr, buffer, crossover_type, selection_type, min_age=0):
     esize = int(GA_POPSIZE * GA_ELITRATE)       # number of elitism moving to next gen
     buffer = elitism(gen_arr, buffer, esize)
+    can_mate = ageing(gen_arr, min_age)
 
-    for i in range(esize, GA_POPSIZE):
-        s = selection_type.selection(gen_arr, 2)
-        mut = crossover_type.crossover(gen_arr[s[0]].str, gen_arr[s[1]].str)
-        buffer[i].str = mut
+    if len(can_mate) > 0:
+        for i in range(esize, GA_POPSIZE):
+            s = selection_type.selection(gen_arr, 2)
+            mut = crossover_type.crossover(s[0].str, s[1].str)
+            buffer[i] = Genetic(mut)
 
-        if np.random.choice([True, False], p=[GA_MUTATIONRATE, 1-GA_MUTATIONRATE]):
-            mutate(buffer, i)
+            if np.random.choice([True, False], p=[GA_MUTATIONRATE, 1-GA_MUTATIONRATE]):
+                mutate(buffer, i)
     return gen_arr, buffer
 
 
