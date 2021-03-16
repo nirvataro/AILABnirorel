@@ -3,11 +3,10 @@ import string
 import random
 import time
 import numpy as np
-from math import sqrt
 
 
-GA_POPSIZE = 2048	    # ga population size
-GA_MAXITER = 200    	    # maximum iterations
+GA_POPSIZE = 2000	    # ga population size
+GA_MAXITER = 600   	    # maximum iterations
 GA_ELITRATE = 0.1		    # elitism rate
 GA_MUTATIONRATE = 0.25      # mutation rate
 HIT_BONUS = 1
@@ -72,6 +71,7 @@ class HitBonus:
             if gen.str[i] in GA_TARGET:
                 temp_fit -= HIT_BONUS
         return temp_fit
+
 
 # generic letter distance heuristic class
 class LetterDistance:
@@ -207,15 +207,16 @@ def ageing(gen_arr, min_age):
 
 
 # randomly changes one of the characters
-def mutate(buffer, i):
-    pos = random.randint(0, len(GA_TARGET)-1)
-    delta = random.choice(string.printable)
-    s = list(buffer[i].str)
-    s[pos] = delta
-    buffer[i].str = "".join(s)
+class RandomMutate:
+    def mutate(self, gen):
+        pos = random.randint(0, len(GA_TARGET)-1)
+        delta = random.choice(string.printable)
+        s = list(gen.str)
+        s[pos] = delta
+        gen.str = "".join(s)
 
 
-def mate(gen_arr, buffer, crossover_type, selection_type, min_age=0):
+def mate(gen_arr, buffer, crossover_type, selection_type, mut_method=RandomMutate(), min_age=0):
     esize = int(GA_POPSIZE * GA_ELITRATE)       # number of elitism moving to next gen
     buffer = elitism(gen_arr, buffer, esize)
     can_mate = ageing(gen_arr, min_age)
@@ -227,7 +228,7 @@ def mate(gen_arr, buffer, crossover_type, selection_type, min_age=0):
             buffer[i] = Genetic(mut)
 
             if np.random.choice([True, False], p=[GA_MUTATIONRATE, 1-GA_MUTATIONRATE]):
-                mutate(buffer, i)
+                mut_method.mutate(buffer[i])
     return gen_arr, buffer
 
 
