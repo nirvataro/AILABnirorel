@@ -27,12 +27,15 @@ class PMXCrossover:
         return child
 
 
+# OX crossover from moodle
 class OXCrossover:
     def crossover(self, perm1, perm2):
         child = [i for i in perm1]
+        # val1 will store half of the values randomly
         val1 = random.sample(range(0, N), N // 2)
+        # val2 will store the remaining values
         val2 = [i for i in perm2 if i not in val1]
-        v1, v2 = 0, 0
+        v2 = 0
         for i in range(len(child)):
             if child[i] not in val1:
                 child[i] = val2[v2]
