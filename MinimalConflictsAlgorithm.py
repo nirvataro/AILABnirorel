@@ -3,13 +3,17 @@ import numpy as np
 import random
 import time
 
-N = 8
+N = 17
 # ASDFGH
-
-def MinimalConflictsAlgorithm(board):
+# 0 1 0 0 0
+# 0 0 0 1 0
+# 1 0 0 0 0
+# 0 0 1 0 0
+# 0 0 0 0 1
+def MinimalConflictsAlgorithm(board, iter=0):
     print(board)
     change = False
-    worst_queen = 0
+    worst_queen = -1
     while not change:
         max_conf = 0
         for i in range(worst_queen+1, N):
@@ -18,9 +22,13 @@ def MinimalConflictsAlgorithm(board):
                 max_conf = q_i_conf
                 worst_queen = i
         if max_conf == 0:
+            for i in range(N):
+                max_conf += queen_conflict(board, i)
+            print(iter)
+            print(max_conf)
             return board
         board, change = move_worst_queen(board, worst_queen)
-    return MinimalConflictsAlgorithm(board)
+    return MinimalConflictsAlgorithm(board, iter+1)
 
 
 def queen_conflict(board, q):
@@ -48,7 +56,6 @@ def move_worst_queen(board, worst_queen):
 
 def main():
     MinimalConflictsAlgorithm(np.random.permutation(range(N)))
-
 
 if __name__ == "__main__":
     main()
