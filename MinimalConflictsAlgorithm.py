@@ -4,7 +4,7 @@ import random
 import time
 
 N = 8
-
+# ASDFGH
 
 def MinimalConflictsAlgorithm(board):
     print(board)

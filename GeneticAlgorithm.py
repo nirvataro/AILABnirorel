@@ -52,15 +52,16 @@ class Genetic:
             self.p_best_str = self.str
 
 
+def calc_fitness(gen_arr, heu):
+    for g in gen_arr:
+        g.fitness = heu.calc_personal_fitness(g)
+        if g.pso and g.p_best_fitness > g.fitness:
+            g.p_best_fitness = g.fitness
+            g.p_best_str = g.str
+
+
 # EX4: class for "Bul Pgiya" heuristic
 class HitBonus:
-    def calc_fitness(self, gen_arr):
-        for g in gen_arr:
-            g.fitness = self.calc_personal_fitness(g)
-            if g.pso and g.p_best_fitness > g.fitness:
-                g.p_best_fitness = g.fitness
-                g.p_best = g.str
-
     def calc_personal_fitness(self, gen):
         LDcalc = LetterDistance()
         temp_fit = LDcalc.calc_personal_fitness(gen)
@@ -75,13 +76,6 @@ class HitBonus:
 
 # generic letter distance heuristic class
 class LetterDistance:
-    def calc_fitness(self, gen_arr):
-        for g in gen_arr:
-            g.fitness = self.calc_personal_fitness(g)
-            if g.pso and g.p_best_fitness > g.fitness:
-                g.p_best_fitness = g.fitness
-                g.p_best_str = g.str
-
     def calc_personal_fitness(self, gen):
         fitness = 0
         for i in range(len(GA_TARGET)):
@@ -262,7 +256,7 @@ def birthday(gen_arr):
 def gen_alg_PSO(heu_type, init_values):
     gen_arr = init_population(init_values, pso=True)
     heu = heuristic_dictionary[heu_type]
-    heu.calc_fitness(gen_arr)
+    calc_fitness(gen_arr, heu)
     best_of_generation = min(gen_arr, key=lambda x: x.fitness)
     global_best = Genetic(best_of_generation.str, pso=True)
     global_best.fitness = heu.calc_personal_fitness(global_best)
@@ -299,7 +293,7 @@ def gen_alg(cross_type, heu_type, select_type, init_values):
         gentimer = time.time()
         genticktimer = time.process_time()
 
-        heu.calc_fitness(gen_arr)
+        calc_fitness(gen_arr, heu)
         gen_arr = sort_by_fitness(gen_arr)
         print_best(gen_arr[0], gen_arr, gentimer, genticktimer)
         if gen_arr[0].fitness == 0:
