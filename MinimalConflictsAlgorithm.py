@@ -10,6 +10,8 @@ N = 17
 # 1 0 0 0 0
 # 0 0 1 0 0
 # 0 0 0 0 1
+
+
 def MinimalConflictsAlgorithm(board, iter=0):
     print(board)
     change = False

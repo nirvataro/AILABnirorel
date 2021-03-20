@@ -5,8 +5,8 @@ import time
 import numpy as np
 
 
-GA_POPSIZE = 2000	    # ga population size
-GA_MAXITER = 600   	    # maximum iterations
+GA_POPSIZE = 30	    # ga population size
+GA_MAXITER = 2000   	    # maximum iterations
 GA_ELITRATE = 0.1		    # elitism rate
 GA_MUTATIONRATE = 0.25      # mutation rate
 HIT_BONUS = 1
@@ -170,7 +170,7 @@ selection_dictionary = {0: RWS(), 1: SUS(), 2: TOURNAMENT(), 3: REGULAR()}
 def init_population(values, pso=False):
     pop, buffer = [], []
     for i in range(GA_POPSIZE):
-        ran_str = ''.join(chr(random.choice(values)) for l in range(len(GA_TARGET)))  # ran_str = ''.join(random.choice(string.printable) for l in range(len(GA_TARGET)))   # random string generator
+        ran_str = ''.join(chr(random.choice(values)) for l in range(len(GA_TARGET)))  # random string generator
         pop.append(Genetic(ran_str, pso))
         buffer.append(Genetic(ran_str, pso))
     if pso:
@@ -253,7 +253,7 @@ def birthday(gen_arr):
     return gen_arr
 
 
-def gen_alg_PSO(heu_type, init_values):
+def pso_alg(heu_type, init_values=range(32, 126)):
     gen_arr = init_population(init_values, pso=True)
     heu = heuristic_dictionary[heu_type]
     calc_fitness(gen_arr, heu)
@@ -277,10 +277,11 @@ def gen_alg_PSO(heu_type, init_values):
         print_best(global_best, gen_arr, gentimer, genticktimer)
         if global_best.fitness == 0:
             break
+
     print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(time.time() - totaltimer, time.process_time() - totalticks, i+1))
 
 
-def gen_alg(cross_type, heu_type, select_type, init_values):
+def gen_alg(cross_type, heu_type, select_type, init_values=range(32, 126)):
     gen_arr, buffer = init_population(init_values)
     heu = heuristic_dictionary[heu_type]
     cross = crossover_dictionary[cross_type]
@@ -299,9 +300,27 @@ def gen_alg(cross_type, heu_type, select_type, init_values):
         if gen_arr[0].fitness == 0:
             break
 
-
         gen_arr = birthday(gen_arr)
         # mate and swap between buffer and gen_arr
         buffer, gen_arr = mate(gen_arr, buffer, cross, select)
 
     print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(time.time() - totaltimer, time.process_time() - totalticks, i+1))
+
+
+pso_dictionary = {0: True, 1: False}
+
+
+def main():
+    do_pso = pso_dictionary[int(input("PSO - 0 / Normal - 1\n"))]
+    heu = int(input("Choose heuristic:\n0 - Letter Distance\n1 - Hit Bonus\n"))
+    if do_pso:
+        pso_alg(heu)
+        return
+    cross = int(input("Choose crossover Type:\n0 - Uniform crossover\n1 - Single point cross over\n2 - Two point cross over\n"))
+    select = int(input("Choose selection:\n0 - RWS\n1 - SUS\n2 - TOURNAMENT\n3 - REGULAR\n"))
+
+    gen_alg(cross, heu, select)
+
+
+if __name__ == "__main__":
+    main()
