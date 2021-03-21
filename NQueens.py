@@ -3,15 +3,15 @@ import numpy as np
 import random
 import time
 
-Q_MAXITER = 10000
-NQ_POPSIZE = GA.GA_POPSIZE
-N = 15
+Q_MAXITER = 100
+NQ_POPSIZE = 200
+N = 20
 
 
 # PMX crossover from moodle
 class PMXCrossover:
-    def crossover(self, perm1, perm2):
-        iter = random.randint(1,N-1)
+    def crossover(self, perm1, perm2, tar_len):
+        iter = random.randint(1, N/2)
         child = [i for i in perm1]
 
         # do PMX crossover a random number of times
@@ -29,10 +29,10 @@ class PMXCrossover:
 
 # OX crossover from moodle
 class OXCrossover:
-    def crossover(self, perm1, perm2):
+    def crossover(self, perm1, perm2, tar_len):
         child = [i for i in perm1]
         # val1 will store half of the values randomly
-        val1 = random.sample(range(0, N), N // 2)
+        val1 = random.sample(range(1, N+1), N // 2)
         # val2 will store the remaining values
         val2 = [i for i in perm2 if i not in val1]
         v2 = 0
@@ -53,9 +53,11 @@ class ConflictsTotal:
 
     def calc_personal_fitness(self, board):
         total_fit = 0
-        for i in range(N):
-            for j in range(i+1,N):
-                if board.str[i] == board.str[j] or board.str[i] == board.str[j] - (j - i) or board.str[i] == board.str[j] + (j - i):
+        for i in range(1, N+1):
+            for j in range(i+1, N+1):
+                if board.str[i-1] == board.str[j-1] or\
+                        board.str[i-1] == board.str[j-1] - (j - i) or\
+                        board.str[i-1] == board.str[j-1] + (j - i):
                     total_fit += 1
         board.fitness = total_fit
 
@@ -64,17 +66,17 @@ heuristic_dictionary = {'0': ConflictsTotal()}
 
 
 class SwapMutation:
-    def mutate(self, gen):
-        index = random.sample(range(0, N), 2)
-        temp = gen.str[index[0]]
-        gen.str[index[0]] = gen.str[index[1]]
-        gen.str[index[1]] = temp
+    def mutate(self, gen, tar_len, init_values):
+        index = random.sample(init_values, 2)
+        temp = gen.str[index[0]-1]
+        gen.str[index[0]-1] = gen.str[index[1]-1]
+        gen.str[index[1]-1] = temp
 
 
 class ScrambleMutation:
-    def mutate(self, gen):
-        start = random.randint(0, N)
-        end = random.randint(start, N)
+    def mutate(self, gen, tar_len, init_values):
+        start = random.randint(0, tar_len)
+        end = random.randint(start, tar_len)
         gen.str[start:end] = np.random.permutation(gen.str[start:end])
 
 
@@ -90,33 +92,34 @@ def init_nqueens():
     return pop, buffer
 
 
-def main_nqueens():
+def main_nqueens(mut, cross, select):
     boards, buffer = init_nqueens()
-    q_mut = mut_dictionary[input("Swap Mutation - 0 / Scramble Mutation - 1\n")]
-    q_cross = crossover_dictionary[input("Order Crossover - 0 / Partially Matched Crossover - 1\n")]
-    q_select = GA.selection_dictionary[int(input("Choose selection:\n0 - RWS\n1 - SUS\n2 - TOURNAMENT\n3 - REGULAR\n"))]
-
+    # q_mut = mut_dictionary[input("Swap Mutation - 0 / Scramble Mutation - 1\n")]
+    # q_cross = crossover_dictionary[input("Order Crossover - 0 / Partially Matched Crossover - 1\n")]
+    # q_select = GA.selection_dictionary[int(input("Choose selection:\n0 - RWS\n1 - SUS\n2 - TOURNAMENT\n3 - REGULAR\n"))]
+    q_mut = mut_dictionary[str(mut)]
+    q_cross = crossover_dictionary[str(cross)]
+    q_select = GA.selection_dictionary[select]
     q_heu = heuristic_dictionary['0']
 
     totaltimer = time.time()
-    totalticks = time.process_time()
 
     for i in range(Q_MAXITER):
         gentimer = time.time()
-        genticktimer = time.process_time()
 
         q_heu.calc_fitness(boards)
         boards = GA.sort_by_fitness(boards)
-        GA.print_best(boards[0], boards, gentimer, genticktimer)
+        GA.print_best(boards[0], boards, gentimer)
         if boards[0].fitness == 0:
-            break
+            return i, time.time() - totaltimer
+            #break
 
         boards = GA.birthday(boards)
         # mate and swap between buffer and boards
-        buffer, boards = GA.mate(boards, buffer, q_cross, q_select, q_mut)
-
-    print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(time.time() - totaltimer,
-                                                                          time.process_time() - totalticks, i + 1))
+        buffer, boards = GA.mate(boards, buffer, q_cross, q_select, range(1, N+1), q_mut, tar_len=N)
+    return -1, time.time() - totaltimer
+    total_time = time.time() - total_timer
+    print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(total_time, total_time*cpu_freq()[0]*2**20, i+1))
 
 
 if __name__ == '__main__':

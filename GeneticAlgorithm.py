@@ -5,7 +5,7 @@ import numpy as np
 from psutil import cpu_freq
 
 ############## constants ###############
-GA_POPSIZE = 1000           # ga population size
+GA_POPSIZE = 200         # ga population size
 GA_MAXITER = 2000   	    # maximum iterations
 GA_ELITRATE = .1		    # elitism rate
 GA_MUTATIONRATE = .25      # mutation rate
