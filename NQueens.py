@@ -47,6 +47,8 @@ class OXCrossover:
 crossover_dictionary = {'0': OXCrossover(), '1': PMXCrossover()}
 
 
+# board fitness will be calculated by number of conflicts in board
+# option to add new fitness functions in future
 class ConflictsTotal:
     def calc_fitness(self, boards):
         for b in boards:
@@ -66,6 +68,7 @@ class ConflictsTotal:
 heuristic_dictionary = {'0': ConflictsTotal()}
 
 
+# swap mutation as seen in word mutation file
 class SwapMutation:
     def mutate(self, gen, tar_len, init_values):
         index = random.sample(init_values, 2)
@@ -74,6 +77,7 @@ class SwapMutation:
         gen.str[index[1]-1] = temp
 
 
+# scramble mutation as seen in word mutation file
 class ScrambleMutation:
     def mutate(self, gen, tar_len, init_values):
         start = random.randint(0, tar_len)
@@ -84,6 +88,7 @@ class ScrambleMutation:
 mut_dictionary = {'0': SwapMutation(), '1': ScrambleMutation()}
 
 
+# initializes NQ_POPSIZE boards
 def init_nqueens():
     pop, buffer = [], []
     for i in range(NQ_POPSIZE):
