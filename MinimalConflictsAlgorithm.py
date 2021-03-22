@@ -1,12 +1,11 @@
 import GeneticAlgorithm as GA
 import numpy as np
 
-N = 5
-
+N = 25
 
 
 def MinimalConflictsAlgorithm(board, iter=0):
-    #print(board)
+    print(board)
     change = False
     worst_queen = -1
     while not change:
@@ -50,10 +49,6 @@ def move_worst_queen(board, worst_queen):
 
 
 def main():
-    print("N=5")
-    for i in range(1000):
-        print(i)
-        MinimalConflictsAlgorithm(np.random.permutation(range(N)))
-        print("\n")
+    MinimalConflictsAlgorithm(np.random.permutation(range(N)))
 if __name__ == "__main__":
     main()

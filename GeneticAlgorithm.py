@@ -104,6 +104,7 @@ class LetterDistance:
 heuristic_dictionary = {0: LetterDistance(), 1: HitBonus()}
 #######################################################################################
 
+
 ################## Part 1 - EX3: classes for each type of crossover ##################
 # one point crossover class
 class OneCross:
