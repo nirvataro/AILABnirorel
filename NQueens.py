@@ -2,9 +2,10 @@ import GeneticAlgorithm as GA
 import numpy as np
 import random
 import time
+from psutil import cpu_freq
 
 Q_MAXITER = 100
-NQ_POPSIZE = 200
+NQ_POPSIZE = 1000
 N = 20
 
 
@@ -92,17 +93,24 @@ def init_nqueens():
     return pop, buffer
 
 
-def main_nqueens(mut, cross, select):
+def main_nqueens(mut=None, cross=None, select=None):
     boards, buffer = init_nqueens()
-    # q_mut = mut_dictionary[input("Swap Mutation - 0 / Scramble Mutation - 1\n")]
-    # q_cross = crossover_dictionary[input("Order Crossover - 0 / Partially Matched Crossover - 1\n")]
-    # q_select = GA.selection_dictionary[int(input("Choose selection:\n0 - RWS\n1 - SUS\n2 - TOURNAMENT\n3 - REGULAR\n"))]
-    q_mut = mut_dictionary[str(mut)]
-    q_cross = crossover_dictionary[str(cross)]
-    q_select = GA.selection_dictionary[select]
+    if mut is None:
+        q_mut = mut_dictionary[input("Swap Mutation - 0 / Scramble Mutation - 1\n")]
+    else:
+        q_mut = mut_dictionary[str(mut)]
+    if cross is None:
+        q_cross = crossover_dictionary[input("Order Crossover - 0 / Partially Matched Crossover - 1\n")]
+    else:
+        q_cross = crossover_dictionary[str(cross)]
+    if select is None:
+        q_select = GA.selection_dictionary[int(input("Choose selection:\n0 - RWS\n1 - SUS\n2 - TOURNAMENT\n3 - REGULAR\n"))]
+    else:
+        q_select = GA.selection_dictionary[select]
+
     q_heu = heuristic_dictionary['0']
 
-    totaltimer = time.time()
+    total_timer = time.time()
 
     for i in range(Q_MAXITER):
         gentimer = time.time()
@@ -111,13 +119,11 @@ def main_nqueens(mut, cross, select):
         boards = GA.sort_by_fitness(boards)
         GA.print_best(boards[0], boards, gentimer)
         if boards[0].fitness == 0:
-            return i, time.time() - totaltimer
-            #break
+            break
 
         boards = GA.birthday(boards)
         # mate and swap between buffer and boards
         buffer, boards = GA.mate(boards, buffer, q_cross, q_select, range(1, N+1), q_mut, tar_len=N)
-    return -1, time.time() - totaltimer
     total_time = time.time() - total_timer
     print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(total_time, total_time*cpu_freq()[0]*2**20, i+1))
 

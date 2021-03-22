@@ -2,43 +2,33 @@ import GeneticAlgorithm as GA
 import matplotlib.pyplot as plt
 
 
-REG003 = [23.17, 27.95, 45.66, 89.9, 179.83, 571.02]
-t_REG003 = [1.443546, 0.83078, 0.67098, 0.557685, 0.543737, 0.556542]
+pop_size = [200, 500, 1000, 2000]
+success = [37, 49, 56, 74]
+seconds = [7.295, 14.836, 32.827, 126.315]
+iterations = [41.621, 37.458, 30.2, 38.917]
 
-PSO0 = [45.18, 48.9271, 49.7363, 59.2875, 66.74286, 93.53125]
-t_PSO0 = [1.602588, 0.80447, 0.4231, 0.206962, 0.109996, 0.049005]
+fig, ax = plt.subplots(3)
+# ax[0, 0].set_title('Compare iteration number to population size for both algorithms\nLetters Distance heuristic')
+ax[0].set(xlabel='Population Size', ylabel='Success Rate(%)')
+ax[0].plot(pop_size, success)
+# ax[0].plot(, pop)
 
-REG013 = [15.99, 17.79, 27.69, 78.35, 153.44, 536.58]
-t_REG013 = [1.070438, 0.56909, 0.44371, 0.52759, 0.501278, 0.566466]
+#ax[1, 0].set_title('Compare run-time to population size for both algorithms\nLetters Distance heuristic')
+ax[1].set(xlabel='Population Size', ylabel='Run-Time (sec)')
+ax[1].plot(pop_size, seconds)
+# ax[1].plot(t_PSO0, pop)
+#ax[1].legend(["REGULAR", "PSO"])
 
-PSO1 = [61.05682, 67.5309, 73.08, 85.6458, 96.56, 105.5]
-t_PSO1 = [2.424585, 1.27757, 0.7017, 0.32896, 0.177291, 0.061538]
+#ax[2].set_title('Compare iteration number to population size for both algorithms\nHit Bonus heuristic')
+ax[2].set(xlabel='Population Size', ylabel='Iteration Number')
+ax[2].plot(pop_size, iterations)
+#ax[2].plot(PSO1, pop)
+#ax[2].legend(["REGULAR", "PSO"])
 
-pop = [2000, 1000, 500, 200, 100, 30]
-
-fig, ax = plt.subplots(2, 2)
-ax[0, 0].set_title('Compare iteration number to population size for both algorithms\nLetters Distance heuristic')
-ax[0, 0].set(xlabel='Iteration Number', ylabel='Population Size')
-ax[0, 0].plot(REG003, pop)
-ax[0, 0].plot(PSO0, pop)
-ax[0, 0].legend(["REGULAR", "PSO"])
-
-ax[1, 0].set_title('Compare run-time to population size for both algorithms\nLetters Distance heuristic')
-ax[1, 0].set(xlabel='Run-time(seconds)', ylabel='Population Size')
-ax[1, 0].plot(t_REG003, pop)
-ax[1, 0].plot(t_PSO0, pop)
-ax[1, 0].legend(["REGULAR", "PSO"])
-
-ax[0, 1].set_title('Compare iteration number to population size for both algorithms\nHit Bonus heuristic')
-ax[0, 1].set(xlabel='Iteration Number', ylabel='Population Size')
-ax[0, 1].plot(REG013, pop)
-ax[0, 1].plot(PSO1, pop)
-ax[0, 1].legend(["REGULAR", "PSO"])
-
-ax[1, 1].set_title('Compare run-time to population size for both algorithms\nHit Bonus heuristic')
-ax[1, 1].set(xlabel='Run-time(seconds)', ylabel='Population Size')
-ax[1, 1].plot(t_REG013, pop)
-ax[1, 1].plot(t_PSO1, pop)
-ax[1, 1].legend(["REGULAR", "PSO"])
+# ax[1, 1].set_title('Compare run-time to population size for both algorithms\nHit Bonus heuristic')
+# ax[1, 1].set(xlabel='Run-time(seconds)', ylabel='Population Size')
+# ax[1, 1].plot(t_REG013, pop)
+# ax[1, 1].plot(t_PSO1, pop)
+# ax[1, 1].legend(["REGULAR", "PSO"])
 
 plt.show()

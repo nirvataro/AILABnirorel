@@ -4,23 +4,13 @@ import NQueens as NQ
 import random
 
 
-results_Nqueens_2000pop = []
-
-for i in range(100):
-    mut = random.choice([0,1])
-    select = random.choice([0, 3])
-    cross = random.choice([0, 1])
-    print("choices:", mut, cross, select)
-    results_Nqueens_2000pop.append(NQ.main_nqueens(mut, cross, select))
-    print(i)
-
-
-with xlsxwriter.Workbook('exel files/nqueens2000pop.xlsx') as workbook:
+with xlsxwriter.Workbook('exel files/nqueens0age.xlsx') as workbook:
     worksheet = workbook.add_worksheet()
-    for row_num, data in enumerate(results_Nqueens_2000pop):
-        worksheet.write_row(row_num, 0, data)
-
-
-
-
-
+    for i in range(100):
+        mut = random.choice([0, 1])
+        select = random.choice([0, 3])
+        cross = random.choice([0, 1])
+        print("choices:", mut, cross, select)
+        iter, time = NQ.main_nqueens(mut, cross, select)
+        worksheet.write_row(i+1, 0, [iter, time])
+        print(i, iter, time)
