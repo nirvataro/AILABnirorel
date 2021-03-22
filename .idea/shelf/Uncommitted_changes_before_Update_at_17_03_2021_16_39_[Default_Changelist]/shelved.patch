@@ -1,0 +1,19 @@
+Index: MinimalConflictsAlgorithm.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import GeneticAlgorithm as GA\r\nimport numpy as np\r\nimport random\r\nimport time\r\n\r\nN = 8\r\n# ASDFGH\r\n\r\ndef MinimalConflictsAlgorithm(board):\r\n    print(board)\r\n    change = False\r\n    worst_queen = 0\r\n    while not change:\r\n        max_conf = 0\r\n        for i in range(worst_queen+1, N):\r\n            q_i_conf = queen_conflict(board, i)\r\n            if q_i_conf > max_conf:\r\n                max_conf = q_i_conf\r\n                worst_queen = i\r\n        if max_conf == 0:\r\n            return board\r\n        board, change = move_worst_queen(board, worst_queen)\r\n    return MinimalConflictsAlgorithm(board)\r\n\r\n\r\ndef queen_conflict(board, q):\r\n    conflicts = 0\r\n    for i in range(N):\r\n        if i != q:\r\n            if board[i] == board[q]:\r\n                conflicts += 1\r\n            if board[i] == board[q] - (q - i) or \\\r\n                    board[i] == board[q] + (q - i):\r\n                conflicts += 1.1\r\n    return conflicts\r\n\r\n\r\ndef move_worst_queen(board, worst_queen):\r\n    change = False\r\n    best_board = np.copy(board)\r\n    for i in range(N):\r\n        board[worst_queen] = i\r\n        if queen_conflict(board, worst_queen) < queen_conflict(best_board, worst_queen):\r\n            best_board = np.copy(board)\r\n            change = True\r\n    return best_board, change\r\n\r\n\r\ndef main():\r\n    MinimalConflictsAlgorithm(np.random.permutation(range(N)))\r\n\r\n\r\nif __name__ == \"__main__\":\r\n    main()\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/MinimalConflictsAlgorithm.py b/MinimalConflictsAlgorithm.py
+--- a/MinimalConflictsAlgorithm.py	(revision 8e996463ea49411eda8375b8ccfc8c54c0ce0904)
++++ b/MinimalConflictsAlgorithm.py	(date 1615991878732)
+@@ -4,7 +4,7 @@
+ import time
+ 
+ N = 8
+-# ASDFGH
++
+ 
+ def MinimalConflictsAlgorithm(board):
+     print(board)
