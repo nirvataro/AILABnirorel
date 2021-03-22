@@ -50,5 +50,7 @@ def move_worst_queen(board, worst_queen):
 
 def main():
     MinimalConflictsAlgorithm(np.random.permutation(range(N)))
+
+
 if __name__ == "__main__":
     main()
