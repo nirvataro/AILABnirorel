@@ -8,7 +8,6 @@ MAX_WEIGHT = 165
 ITEM_PRICE = [92, 57, 49, 68, 60, 43, 67, 84, 87, 72]
 SOLUTION = [1, 1, 1, 1, 0, 1, 0, 0, 0, 0]
 ITEM_WEIGHT = [23, 31, 29, 44, 53, 38, 63, 85, 89, 82]
-PENALTY = 10
 
 
 def generateBag():
@@ -29,8 +28,9 @@ def init(item_weight):
 
 
 class Knapsack:
-    def calc_personal_fitness(self, bag):
-        fitness = sum(ITEM_PRICE)
+    def calc_personal_fitness(self, bag, tar_len):
+        total_price = sum(ITEM_PRICE)
+        fitness = total_price
         total_weight = 0
         for i in range(len(bag.str)):
             if bag.str[i]:
@@ -38,7 +38,7 @@ class Knapsack:
                 total_weight += ITEM_WEIGHT[i]
         overweight = total_weight - MAX_WEIGHT
         if overweight > 0:
-            fitness += overweight*PENALTY
+            fitness += overweight*total_price
         return fitness
 
 
@@ -53,7 +53,7 @@ def main():
         gentimer = time.time()
         genticktimer = time.process_time()
 
-        GA.calc_fitness(gen_arr, ks)
+        GA.calc_fitness(gen_arr, ks, tar_len=len(SOLUTION))
         gen_arr = GA.sort_by_fitness(gen_arr)
         GA.print_best(gen_arr[0], gen_arr, gentimer, genticktimer)
         if gen_arr[0].str == SOLUTION:

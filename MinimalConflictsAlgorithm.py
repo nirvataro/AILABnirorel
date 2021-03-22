@@ -1,19 +1,12 @@
 import GeneticAlgorithm as GA
 import numpy as np
-import random
-import time
 
-N = 17
-# ASDFGH
-# 0 1 0 0 0
-# 0 0 0 1 0
-# 1 0 0 0 0
-# 0 0 1 0 0
-# 0 0 0 0 1
+N = 5
+
 
 
 def MinimalConflictsAlgorithm(board, iter=0):
-    print(board)
+    #print(board)
     change = False
     worst_queen = -1
     while not change:
@@ -26,8 +19,8 @@ def MinimalConflictsAlgorithm(board, iter=0):
         if max_conf == 0:
             for i in range(N):
                 max_conf += queen_conflict(board, i)
-            print(iter)
-            print(max_conf)
+            print("iterations: ", iter)
+            print("conflicts: ", max_conf)
             return board
         board, change = move_worst_queen(board, worst_queen)
     return MinimalConflictsAlgorithm(board, iter+1)
@@ -57,7 +50,10 @@ def move_worst_queen(board, worst_queen):
 
 
 def main():
-    MinimalConflictsAlgorithm(np.random.permutation(range(N)))
-
+    print("N=5")
+    for i in range(1000):
+        print(i)
+        MinimalConflictsAlgorithm(np.random.permutation(range(N)))
+        print("\n")
 if __name__ == "__main__":
     main()
