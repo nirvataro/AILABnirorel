@@ -1,23 +1,26 @@
 import GeneticAlgorithm as GA
 import time
 import random
+from psutil import cpu_freq
 
-MAXITER = 2000
-POPSIZE = 20
-MAX_WEIGHT = 165
-ITEM_PRICE = [92, 57, 49, 68, 60, 43, 67, 84, 87, 72]
-SOLUTION = [1, 1, 1, 1, 0, 1, 0, 0, 0, 0]
-ITEM_WEIGHT = [23, 31, 29, 44, 53, 38, 63, 85, 89, 82]
+
+MAXITER = 500
+POPSIZE = 1000
+
+MAX_WEIGHT = 6404180
+ITEM_PRICE = [825594, 1677009, 1676628, 1523970, 943972, 97426, 69666, 1296457, 1679693, 1902996, 1844992, 1049289, 1252836, 1319836, 953277, 2067538, 675367, 853655, 1826027, 65731, 901489, 577243, 466257, 369261]
+SOLUTION = [1,1,0,1,1,1,0,0,0,1,1,0,1,0,0,1,0,0,0,0,0,1,1,1]
+ITEM_WEIGHT = [382745,799601,909247,729069,467902,44328,34610,698150,823460,903959,853665,551830,610856,670702,488960,951111,323046,446298,931161,31385,496951,264724,224916,169684]
 
 
 def generateBag():
-    bag = [None for i in range(len(SOLUTION))]
+    bag = [0 for i in range(len(SOLUTION))]
     for i in range(len(SOLUTION)):
         bag[i] = random.choice([0, 1])
     return bag
 
 
-def init(item_weight):
+def init():
     pop, buffer = [], []
     for i in range(POPSIZE):
         ran_str = generateBag()
@@ -43,28 +46,40 @@ class Knapsack:
 
 
 def main():
-    gen_arr, buffer = init(ITEM_WEIGHT)
+    gen_arr, buffer = init()
     ks = Knapsack()
 
-    totaltimer = time.time()
-    totalticks = time.process_time()
+    total_timer = time.time()
 
     for i in range(MAXITER):
-        gentimer = time.time()
-        genticktimer = time.process_time()
+        gen_timer = time.time()
 
         GA.calc_fitness(gen_arr, ks, tar_len=len(SOLUTION))
         gen_arr = GA.sort_by_fitness(gen_arr)
-        GA.print_best(gen_arr[0], gen_arr, gentimer, genticktimer)
+        GA.print_best(gen_arr[0], gen_arr, gen_timer)
         if gen_arr[0].str == SOLUTION:
-            break
+            total_time = time.time() - total_timer
+            print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(total_time,
+                                                                                  total_time * cpu_freq()[0] * 2 ** 20,
+                                                                                  i + 1))
+            return True
+            # break
 
         gen_arr = GA.birthday(gen_arr)
         # mate and swap between buffer and gen_arr
-        buffer, gen_arr = GA.mate(gen_arr, buffer, GA.UniCross(), GA.REGULAR(), [0,1], tar_len=len(SOLUTION))
+        buffer, gen_arr = GA.mate(gen_arr, buffer, GA.OneCross(), GA.RWS(), init_values=[0, 1], min_age=3, tar_len=len(SOLUTION), flag_Knapsack=True)
 
-    print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(time.time() - totaltimer, time.process_time() - totalticks, i+1))
+    total_time = time.time() - total_timer
+    print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(total_time, total_time*cpu_freq()[0]*2**20, i+1))
+    return False
 
 
 if __name__ == "__main__":
-    main()
+    suc = False
+    tries = 0
+    while not suc:
+        print(tries)
+        suc = main()
+        tries += 1
+
+

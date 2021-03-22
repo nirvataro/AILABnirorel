@@ -6,8 +6,8 @@ from psutil import cpu_freq
 
 ############## constants ###############
 GA_POPSIZE = 1000        # ga population size
-GA_MAXITER = 2000   	    # maximum iterations
-GA_ELITRATE = .4		    # elitism rate
+GA_MAXITER = 500   	    # maximum iterations
+GA_ELITRATE = .2		    # elitism rate
 GA_MUTATIONRATE = .25      # mutation rate
 HIT_BONUS = 1
 EXACT_BONUS = 10
@@ -242,17 +242,20 @@ def birthday(gen_arr):
 
 # randomly changes one of the characters
 class RandomMutate:
-    def mutate(self, gen, tar_len, choices):
+    def mutate(self, gen, tar_len, choices, flag_Knapsack):
         pos = random.randint(0, tar_len-1)
         delta = random.choice(choices)
         new_str = list(gen.str)
-        new_str[pos] = chr(delta)
+        if flag_Knapsack:
+            new_str[pos] = delta
+        else:
+            new_str[pos] = chr(delta)
         gen.str = new_str
 
 
 # generic mating function
 # supports elitism, aging, selection types, crossovers, possible string values, different target lengths
-def mate(gen_arr, buffer, crossover_type, selection_type, init_values, mut_method=RandomMutate(), min_age=0, tar_len=len(GA_TARGET)):
+def mate(gen_arr, buffer, crossover_type, selection_type, init_values, mut_method=RandomMutate(), min_age=0, tar_len=len(GA_TARGET), flag_Knapsack=False):
     esize = int(GA_POPSIZE * GA_ELITRATE)       # number of elitism moving to next generation
     buffer = elitism(gen_arr, buffer, esize)    # filling buffer with best of this generation
     can_mate = ageing(gen_arr, min_age)         # generate possible parents
@@ -266,7 +269,7 @@ def mate(gen_arr, buffer, crossover_type, selection_type, init_values, mut_metho
 
             # in GA_MUTATIONRATE chance new child will mutate
             if np.random.choice([True, False], p=[GA_MUTATIONRATE, 1-GA_MUTATIONRATE]):
-                mut_method.mutate(buffer[i], tar_len, init_values)
+                mut_method.mutate(buffer[i], tar_len, init_values, flag_Knapsack)
     return gen_arr, buffer
 
 
@@ -330,16 +333,17 @@ def gen_alg(cross_type, heu_type, select_type, tar_len=len(GA_TARGET), init_valu
 
         calc_fitness(gen_arr, heu, tar_len)
         gen_arr = sort_by_fitness(gen_arr)
-        print_best(gen_arr[0], gen_arr, gen_timer)
+        # print_best(gen_arr[0], gen_arr, gen_timer)
         if gen_arr[0].fitness == 0:
-            break
+            return i, time.time() - total_timer
+            #break
 
         gen_arr = birthday(gen_arr)
         # mate and swap between buffer and gen_arr
         buffer, gen_arr = mate(gen_arr, buffer, cross, select, init_values)
-
-    total_time = time.time() - total_timer
-    print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(total_time, total_time*cpu_freq()[0]*2**20, i+1))
+    return -1, time.time() - total_timer
+    # total_time = time.time() - total_timer
+    #print("Total time : {}\nTotal clock ticks : {}\nTotal iter:{}".format(total_time, total_time*cpu_freq()[0]*2**20, i+1))
 
 
 pso_dictionary = {0: True, 1: False}
