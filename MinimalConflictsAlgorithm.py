@@ -1,13 +1,17 @@
 import GeneticAlgorithm as GA
 import numpy as np
 
-N = 25
+N = 25      # size of board
 
 
+# recursive minimal conflicts algorithm
 def MinimalConflictsAlgorithm(board, iter=0):
+    # print current state of board
     print(board)
     change = False
     worst_queen = -1
+
+    # checks if a better move was found, if not will check different queen with same number of conflicts
     while not change:
         max_conf = 0
         for i in range(worst_queen+1, N):
@@ -15,6 +19,7 @@ def MinimalConflictsAlgorithm(board, iter=0):
             if q_i_conf > max_conf:
                 max_conf = q_i_conf
                 worst_queen = i
+        # this if will only be true for local minimum or optimal solution
         if max_conf == 0:
             for i in range(N):
                 max_conf += queen_conflict(board, i)
@@ -25,9 +30,13 @@ def MinimalConflictsAlgorithm(board, iter=0):
     return MinimalConflictsAlgorithm(board, iter+1)
 
 
+# calculates each queens conflicts
 def queen_conflict(board, q):
     conflicts = 0
     for i in range(N):
+
+        # note: a diagonal conflict is considered to be worse than horizontal
+        # conflict (achieved better results)
         if i != q:
             if board[i] == board[q]:
                 conflicts += 1
@@ -37,6 +46,7 @@ def queen_conflict(board, q):
     return conflicts
 
 
+# finds best position for worst queen if possible
 def move_worst_queen(board, worst_queen):
     change = False
     best_board = np.copy(board)
