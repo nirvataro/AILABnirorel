@@ -9,6 +9,7 @@ NQ_POPSIZE = 1000
 N = 20
 
 
+########## Part 2 - EX4: classes for each type of crossover ##########
 # PMX crossover from moodle
 class PMXCrossover:
     def crossover(self, perm1, perm2, tar_len):
@@ -45,8 +46,10 @@ class OXCrossover:
 
 
 crossover_dictionary = {'0': OXCrossover(), '1': PMXCrossover()}
+######################################################################
 
 
+########## Part 2 - EX7: class for fitness calculating base Minimal Conflicts Algorithm ##########
 class ConflictsTotal:
     def calc_fitness(self, boards):
         for b in boards:
@@ -64,8 +67,10 @@ class ConflictsTotal:
 
 
 heuristic_dictionary = {'0': ConflictsTotal()}
+##################################################################################################
 
 
+########## Part 2 - EX4: classes for each type of mutate  ##########
 class SwapMutation:
     def mutate(self, gen, tar_len, init_values):
         index = random.sample(init_values, 2)
@@ -82,6 +87,7 @@ class ScrambleMutation:
 
 
 mut_dictionary = {'0': SwapMutation(), '1': ScrambleMutation()}
+##################################################################################################
 
 
 def init_nqueens():
